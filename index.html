@@ -11,7 +11,7 @@
             background: black;
             font-family: Arial, sans-serif;
         }
-        
+       
         .container {
             position: relative;
             width: 100vw;
@@ -21,7 +21,7 @@
             justify-content: center;
             align-items: center;
         }
-        
+       
         h1 {
             font-size: 5em;
             font-weight: bold;
@@ -36,16 +36,29 @@
             z-index: 10;
         }
         
+        img {
+            position: absolute;
+            width: 200px;
+            height: auto;
+            cursor: grab;
+            user-select: none;
+            z-index: 5;
+        }
+        
+        img:active {
+            cursor: grabbing;
+        }
+       
         @keyframes bounce {
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.05); }
         }
-        
+       
         @keyframes pulse {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.6; }
         }
-        
+       
         .sparkle {
             position: absolute;
             width: 4px;
@@ -55,7 +68,7 @@
             animation: sparkle 3s linear infinite;
             box-shadow: 0 0 10px white;
         }
-        
+       
         @keyframes sparkle {
             0% { transform: translateY(100vh) scale(0); opacity: 0; }
             10% { opacity: 1; }
@@ -67,8 +80,10 @@
 <body>
     <div class="container">
         <h1>DAY 0</h1>
+        <img src="catOnAPlate.png" alt="Cat on a Plate">
     </div>
-    
+   
+   
     <script>
         for (let i = 0; i < 50; i++) {
             const sparkle = document.createElement('div');
@@ -78,6 +93,84 @@
             sparkle.style.animationDuration = (Math.random() * 2 + 2) + 's';
             document.body.appendChild(sparkle);
         }
+
+        // Physics simulation for the image
+        const img = document.querySelector('img');
+        let x = window.innerWidth / 2 - 100;
+        let y = window.innerHeight / 2;
+        let vx = 0;
+        let vy = 0;
+        let isDragging = false;
+        let dragOffsetX = 0;
+        let dragOffsetY = 0;
+
+        const gravity = 0.5;
+        const bounce = 0.7;
+        const friction = 0.98;
+
+        img.style.left = x + 'px';
+        img.style.top = y + 'px';
+
+        img.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            dragOffsetX = e.clientX - x;
+            dragOffsetY = e.clientY - y;
+            vx = 0;
+            vy = 0;
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                const newX = e.clientX - dragOffsetX;
+                const newY = e.clientY - dragOffsetY;
+                vx = newX - x;
+                vy = newY - y;
+                x = newX;
+                y = newY;
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+
+        function animate() {
+            if (!isDragging) {
+                vy += gravity;
+                x += vx;
+                y += vy;
+
+                vx *= friction;
+
+                const imgWidth = img.offsetWidth;
+                const imgHeight = img.offsetHeight;
+
+                if (x < 0) {
+                    x = 0;
+                    vx = Math.abs(vx) * bounce;
+                }
+                if (x + imgWidth > window.innerWidth) {
+                    x = window.innerWidth - imgWidth;
+                    vx = -Math.abs(vx) * bounce;
+                }
+                if (y < 0) {
+                    y = 0;
+                    vy = Math.abs(vy) * bounce;
+                }
+                if (y + imgHeight > window.innerHeight) {
+                    y = window.innerHeight - imgHeight;
+                    vy = -Math.abs(vy) * bounce;
+                    if (Math.abs(vy) < 0.5) vy = 0;
+                }
+            }
+
+            img.style.left = x + 'px';
+            img.style.top = y + 'px';
+
+            requestAnimationFrame(animate);
+        }
+
+        animate();
     </script>
 </body>
 </html>
